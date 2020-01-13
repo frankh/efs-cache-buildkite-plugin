@@ -1,0 +1,12 @@
+name: EFS Cache
+description: Restore and Save directories to EFS
+author: https://github.com/frankh
+configuration:
+  properties:
+    efs_path:
+      type: string
+    cache_key:
+      type: string
+    paths:
+      type: [ string, array ]
+  additionalProperties: false

@@ -1,0 +1,32 @@
+#!/bin/bash
+# shellcheck disable=SC2001
+set -xeuo pipefail
+
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=lib/shared.bash
+. "$DIR/../lib/shared.bash"
+
+if [[ -n "${BUILDKITE_PLUGIN_EFS_CACHE_CACHE_KEY:-}" ]] ; then
+
+  cache_key_prefix=$(echo "$BUILDKITE_PLUGIN_EFS_CACHE_CACHE_KEY" | sed -e 's/{.*//')
+  template_value=$(echo "$BUILDKITE_PLUGIN_EFS_CACHE_CACHE_KEY" | sed -e 's/^[^\{{]*[^A-Za-z]*//' -e 's/.}}.*$//' | tr -d \' | tr -d \")
+
+  if [[ $template_value == *"checksum"* ]]; then
+    checksum_argument=$(echo "$template_value" | sed -e 's/checksum*//')
+    function=${template_value/"checksum"/"shasum"}
+    result=$($function | tr -d "$checksum_argument")
+    cache_key="$cache_key_prefix$result"
+  else
+    cache_key=$BUILDKITE_PLUGIN_EFS_CACHE_CACHE_KEY
+  fi
+
+  efs_path=$(plugin_read_config EFS_PATH)
+  while read -r path; do
+    if [[ -d "${efs_path}/${cache_key}/$path" ]]; then
+      echo "linking $path cache"
+      ln -s "${efs_path}/${cache_key}/$path" "$path"
+    fi
+  done <<< "$(plugin_read_list PATHS)"
+
+fi
