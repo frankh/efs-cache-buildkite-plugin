@@ -3,6 +3,7 @@
 set -xeuo pipefail
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+SUDO=${BUILDKITE_PLUGIN_EFS_CACHE_SUDO:-}
 
 # shellcheck source=lib/shared.bash
 . "$DIR/../lib/shared.bash"
@@ -25,8 +26,8 @@ if [[ -n "${BUILDKITE_PLUGIN_EFS_CACHE_CACHE_KEY:-}" ]] ; then
   while read -r path; do
     if [[ ! -d "${efs_path}/${cache_key}/$path" ]]; then
       echo "populating $path cache"
-      mkdir -p "${efs_path}/${cache_key}"
-      cp -r "$path" "${efs_path}/${cache_key}/"
+      $SUDO mkdir -p "${efs_path}/${cache_key}"
+      $SUDO cp -r "$path" "${efs_path}/${cache_key}/"
     fi
   done <<< "$(plugin_read_list PATHS)"
 

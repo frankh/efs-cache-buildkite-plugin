@@ -7,6 +7,8 @@ configuration:
       type: string
     cache_key:
       type: string
+    sudo:
+      type: string
     paths:
       type: [ string, array ]
   additionalProperties: false
